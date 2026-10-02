@@ -179,3 +179,38 @@ models:
 
 The check reports non-string or empty patterns as configuration errors. An
 invalid regex causes `dbt check` to fail with the database's regex error.
+
+## Integration project
+
+`integration_tests/jaffle_shop` is a complete DuckDB project that exercises all
+eight checks against Jaffle Shop models, sources, descriptions, and tests. Its
+`dbt check` output intentionally includes violations; the suite runner verifies
+the exact expected resources and runs focused passing and failing checks for
+each behavior. The fixtures cover project and folder inheritance, YAML and SQL
+overrides, and invalid settings in isolated temporary projects.
+The fixture keeps source checks focused by check name: dbt 2.0.6 currently
+skips source-only check results when `--select` is supplied, so the runner
+asserts both source outcomes from each isolated source-check report.
+
+Install dbt v2 with its DuckDB adapter, then run the suite from the repository
+root:
+
+```sh
+uv run integration_tests/jaffle_shop/run_suite.py
+```
+
+The runner installs the local `dbt_checks` package, recreates the fixture
+database from the two `.csv.source` files, runs `dbt seed`, and builds the
+models and tests with `dbt build --skip-checks` before checking the declared
+outcomes. To inspect the deliberate failures directly:
+
+```sh
+dbt deps --project-dir integration_tests/jaffle_shop --profiles-dir integration_tests/jaffle_shop
+uv run integration_tests/jaffle_shop/setup_database.py
+dbt seed --project-dir integration_tests/jaffle_shop --profiles-dir integration_tests/jaffle_shop
+dbt build --skip-checks --project-dir integration_tests/jaffle_shop --profiles-dir integration_tests/jaffle_shop
+dbt check --project-dir integration_tests/jaffle_shop --profiles-dir integration_tests/jaffle_shop
+```
+
+Set `JAFFLE_SHOP_DB_PATH` to use a different DuckDB file. The setup script
+recreates that file, so point it only at the integration database.

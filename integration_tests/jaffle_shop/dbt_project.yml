@@ -1,0 +1,34 @@
+name: jaffle_shop
+version: "0.1.0"
+config-version: 2
+profile: jaffle_shop
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+check-paths: ["checks"]
+clean-targets: ["target", "dbt_packages", "logs"]
+checks:
+  dbt_checks:
+    model_has_test:
+      +enabled: true
+info_schema:
+  version: 1
+models:
+  jaffle_shop:
+    +materialized: table
+    +meta:
+      "checks.model_has_grain_test": true
+      "checks.model_name_matches_pattern":
+        pattern: "^[a-z][a-z0-9_]*$"
+    staging:
+      +materialized: view
+      +meta:
+        "checks.column_has_description": false
+        "checks.model_name_matches_pattern":
+          pattern: "(base_|stg_).*"
+    marts:
+      +meta:
+        "checks.column_has_description": true
+        "checks.model_name_matches_pattern":
+          pattern: "(dim_|fct_).*"
