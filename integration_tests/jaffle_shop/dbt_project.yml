@@ -19,6 +19,7 @@ models:
     +materialized: table
     +meta:
       "checks.model_has_grain_test": true
+      "checks.public_models_have_descriptions": true
       "checks.model_name_matches_pattern":
         pattern: "^[a-z][a-z0-9_]*$"
     staging:

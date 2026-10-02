@@ -183,7 +183,9 @@ invalid regex causes `dbt check` to fail with the database's regex error.
 ## Integration project
 
 `integration_tests/jaffle_shop` is a complete DuckDB project that exercises all
-eight checks against Jaffle Shop models, sources, descriptions, and tests. Its
+eight package checks against Jaffle Shop models, sources, descriptions, and tests.
+It also includes `checks/public_models_have_descriptions.sql`, a project check
+using `dbt_checks.configured_models` with dbt's `info_schema('models')` macro. Its
 `dbt check` output intentionally includes violations; the suite runner verifies
 the exact expected resources and runs focused passing and failing checks for
 each behavior. The fixtures cover project and folder inheritance, YAML and SQL

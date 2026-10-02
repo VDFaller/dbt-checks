@@ -52,6 +52,8 @@ FOCUSED_CASES = [
     CheckCase("model_name_matches_pattern", "yaml_pattern_model", True),
     CheckCase("model_name_matches_pattern", "inline_sql_pattern_case", True),
     CheckCase("model_name_matches_pattern", "mart_without_docs", False),
+    CheckCase("public_models_have_descriptions", "customers", True),
+    CheckCase("public_models_have_descriptions", "mart_without_docs", False),
 ]
 
 EXPECTED_ALL_FAILURES = {
@@ -63,6 +65,7 @@ EXPECTED_ALL_FAILURES = {
     "column_has_description": {"fct_missing_column_docs", "stg_sql_column_override"},
     "model_has_grain_test": {"dim_missing_grain_not_null"},
     "model_name_matches_pattern": {"mart_without_docs"},
+    "public_models_have_descriptions": {"mart_without_docs"},
 }
 
 
@@ -247,8 +250,8 @@ def assert_override_removals() -> None:
             "model_name_matches_pattern",
             "customers",
             "models/marts/customers.sql",
-            '{{ config(meta={"checks.model_name_matches_pattern": {"pattern": "customers"}}) }}\n',
-            "",
+            '    meta={"checks.model_name_matches_pattern": {"pattern": "customers"}}\n',
+            '    meta={}\n',
             "model name does not match pattern",
         ),
         (

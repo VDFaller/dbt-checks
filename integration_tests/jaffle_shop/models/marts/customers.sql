@@ -1,4 +1,7 @@
-{{ config(meta={"checks.model_name_matches_pattern": {"pattern": "customers"}}) }}
+{{ config(
+    access='public',
+    meta={"checks.model_name_matches_pattern": {"pattern": "customers"}}
+) }}
 
 with customers as (select * from {{ ref('stg_customers') }}),
 orders as (select * from {{ ref('stg_orders') }}),
