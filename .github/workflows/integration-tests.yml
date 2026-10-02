@@ -1,0 +1,17 @@
+name: Integration tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  jaffle-shop:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Install dbt v2
+        run: curl -fsSL https://public.cdn.getdbt.com/fs/install/install.sh | sh -s -- --update
+      - name: Run Jaffle Shop integration suite
+        run: uv run integration_tests/jaffle_shop/run_suite.py

@@ -1,0 +1,18 @@
+version: 2
+sources:
+  - name: jaffle_shop
+    schema: main
+    tables:
+      - name: raw_customers
+        description: "Customer records loaded before dbt runs."
+        columns:
+          - name: id
+            description: "Unique customer identifier."
+        data_tests:
+          - unique:
+              arguments:
+                column_name: id
+          - not_null:
+              arguments:
+                column_name: id
+      - name: raw_orders
