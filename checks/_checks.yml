@@ -1,0 +1,41 @@
+version: 2
+
+checks:
+  - name: model_has_properties_file
+    description: "Fails if an enabled model is not documented by a properties YAML file."
+    config:
+      severity: error
+
+  - name: column_has_description
+    description: |
+      Fails if an enabled column on an assigned model is missing a description.
+      Enable it with the literal meta key checks.column_has_description: true.
+
+  - name: model_has_description
+    description: "Fails if an enabled model is missing a description."
+
+  - name: model_has_test
+    description: "Fails if an enabled model has no data tests."
+    config:
+      enabled: false
+
+  - name: source_table_has_description
+    description: "Fails if an enabled source table is missing a description."
+
+  - name: source_table_has_test
+    description: "Fails if an enabled source table has no data tests."
+
+  - name: model_has_grain_test
+    description: |
+      Fails if an enabled model opted into the grain check has no accepted
+      grain test with matching not-null tests on every grain column.
+      Enable it with the literal meta key checks.model_has_grain_test. An
+      object can set accepted_test_names; by default, unique,
+      dbt_utils.combination_of_columns, and dbt_expectations.expect_compound_columns_to_be_unique count.
+
+  - name: model_name_matches_pattern
+    description: |
+      Fails if an opted-in model's name does not fully match its configured
+      regex pattern. Enable it with the literal meta key
+      checks.model_name_matches_pattern. The default pattern permits lowercase
+      snake_case names; an object can set a different pattern.

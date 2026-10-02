@@ -1,0 +1,10 @@
+name: dbt_checks
+profile: dbt_checks
+version: "0.1.0"
+config-version: 2
+
+check-paths: ["checks"]
+macro-paths: ["macros"]
+
+info_schema:
+  version: 1
