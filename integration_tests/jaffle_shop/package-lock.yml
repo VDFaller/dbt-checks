@@ -1,0 +1,4 @@
+packages:
+- local: ../..
+  name: dbt_checks
+sha1_hash: cebf55067430e1def3802eec0355fa04b83ad6e8

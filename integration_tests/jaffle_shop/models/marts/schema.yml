@@ -1,0 +1,239 @@
+version: 2
+
+models:
+  - name: customers
+    description: "Customer-level lifetime order and payment summary."
+    columns:
+      - name: customer_id
+        description: "Unique customer identifier."
+      - name: first_name
+        description: "Customer first name."
+      - name: last_name
+        description: "Customer last name."
+      - name: first_order
+        description: "Date of the customer's first order."
+      - name: most_recent_order
+        description: "Date of the customer's most recent order."
+      - name: number_of_orders
+        description: "Number of orders placed by the customer."
+      - name: customer_lifetime_value
+        description: "Total payments made by the customer in dollars."
+    data_tests:
+      - unique:
+          arguments:
+            column_name: customer_id
+      - not_null:
+          arguments:
+            column_name: customer_id
+  - name: orders
+    description: "One row per order with its collected payment amount."
+    config:
+      meta:
+        "checks.model_name_matches_pattern": false
+        "checks.model_has_grain_test": false
+    columns:
+      - name: order_id
+        description: "Unique order identifier."
+      - name: customer_id
+        description: "Customer who placed this order."
+      - name: order_date
+        description: "Date the order was placed."
+      - name: status
+        description: "Current order status."
+      - name: credit_card_amount
+        description: "Amount paid by credit card."
+      - name: coupon_amount
+        description: "Amount paid by coupon."
+      - name: bank_transfer_amount
+        description: "Amount paid by bank transfer."
+      - name: gift_card_amount
+        description: "Amount paid by gift card."
+      - name: amount
+        description: "Total amount paid for the order in dollars."
+    data_tests:
+      - accepted_values:
+          arguments:
+            column_name: status
+            values: [completed, shipped, returned]
+  - name: fct_composite_grain
+    description: "Fixture for an accepted composite grain test."
+    config:
+      meta:
+        "checks.model_has_grain_test":
+          accepted_test_names: [unique_combination_of_columns]
+    columns:
+      - name: account_id
+        description: "Account identifier."
+      - name: sequence_id
+        description: "Sequence within the account."
+    data_tests:
+      - unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [account_id, sequence_id]
+      - not_null:
+          arguments:
+            column_name: account_id
+      - not_null:
+          arguments:
+            column_name: sequence_id
+  - name: fct_missing_column_docs
+    description: "A documented model with an intentionally undocumented column."
+    config:
+      meta:
+        "checks.model_has_grain_test": false
+    columns:
+      - name: documented_column
+        description: "Column that has documentation."
+      - name: undocumented_column
+    data_tests:
+      - not_null:
+          arguments:
+            column_name: documented_column
+  - name: dim_missing_grain_not_null
+    description: "Fixture missing a not-null test on one composite grain column."
+    config:
+      meta:
+        "checks.model_has_grain_test":
+          accepted_test_names: [unique_combination_of_columns]
+    columns:
+      - name: account_id
+        description: "Account identifier."
+      - name: sequence_id
+        description: "Sequence within the account."
+    data_tests:
+      - unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [account_id, sequence_id]
+      - not_null:
+          arguments:
+            column_name: account_id
+  - name: yaml_pattern_model
+    description: "Fixture with its own accepted model name pattern."
+    config:
+      meta:
+        "checks.model_name_matches_pattern":
+          pattern: "yaml_.*"
+        "checks.model_has_grain_test": false
+    columns:
+      - name: id
+        description: "Fixture row identifier."
+    data_tests:
+      - not_null:
+          arguments:
+            column_name: id
+  - name: dim_sql_grain_exemption
+    description: "Fixture for SQL grain and column-check exemptions."
+    columns:
+      - name: id
+    data_tests:
+      - not_null:
+          arguments:
+            column_name: id
+  - name: stg_sql_column_override
+    description: "Fixture for SQL column-check override."
+    config:
+      meta:
+        "checks.model_has_grain_test": false
+    columns:
+      - name: id
+    data_tests:
+      - not_null:
+          arguments:
+            column_name: id
+  - name: inline_sql_pattern_case
+    description: "Fixture for SQL model-name pattern override."
+    config:
+      meta:
+        "checks.model_has_grain_test": false
+    columns:
+      - name: id
+    data_tests:
+      - not_null:
+          arguments:
+            column_name: id
+  - name: stg_yaml_column_exemption
+    description: "Fixture for YAML false column-check override."
+    config:
+      meta:
+        "checks.column_has_description": false
+        "checks.model_has_grain_test": false
+    columns:
+      - name: id
+    data_tests:
+      - not_null:
+          arguments:
+            column_name: id
+  - name: fct_yaml_column_exemption
+    description: "Fixture for an individual YAML column-check exemption."
+    config:
+      meta:
+        "checks.column_has_description": false
+        "checks.model_has_grain_test": false
+    columns:
+      - name: id
+    data_tests:
+      - not_null:
+          arguments:
+            column_name: id
+  - name: stg_customers
+    description: "Customer records with normalized names."
+    config:
+      meta:
+        "checks.model_has_grain_test": false
+    columns:
+      - name: customer_id
+        description: "Unique customer identifier."
+      - name: first_name
+      - name: last_name
+    data_tests:
+      - unique:
+          arguments:
+            column_name: customer_id
+      - not_null:
+          arguments:
+            column_name: customer_id
+  - name: stg_orders
+    description: "Order records with normalized date and identifiers."
+    config:
+      meta:
+        "checks.column_has_description": true
+        "checks.model_has_grain_test": true
+        "checks.model_name_matches_pattern":
+          pattern: "stg_orders"
+    columns:
+      - name: order_id
+        description: "Unique order identifier."
+      - name: customer_id
+        description: "Customer who placed the order."
+      - name: order_date
+        description: "Date the order was placed."
+      - name: status
+        description: "Current order status."
+    data_tests:
+      - unique:
+          arguments:
+            column_name: order_id
+      - not_null:
+          arguments:
+            column_name: order_id
+  - name: stg_payments
+    description: "Payment records with dollar amounts."
+    config:
+      meta:
+        "checks.model_has_grain_test": false
+    columns:
+      - name: payment_id
+        description: "Unique payment identifier."
+      - name: order_id
+        description: "Associated order identifier."
+      - name: payment_method
+        description: "Payment method."
+      - name: amount
+        description: "Payment amount in dollars."
+    data_tests:
+      - unique:
+          arguments:
+            column_name: payment_id
+      - not_null:
+          arguments:
+            column_name: payment_id
