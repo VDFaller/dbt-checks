@@ -6,11 +6,6 @@ checks:
     config:
       severity: error
 
-  - name: column_has_description
-    description: |
-      Fails if an enabled column on an assigned model is missing a description.
-      Enable it with the literal meta key checks.column_has_description: true.
-
   - name: column_is_documented
     description: |
       Fails if an opted-in column has no description or, by default, no declared

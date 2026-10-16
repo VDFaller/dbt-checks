@@ -228,7 +228,7 @@ models:
     description: "Fixture for YAML false column-check override."
     config:
       meta:
-        "checks.column_has_description": false
+        "checks.column_is_documented": false
         "checks.model_has_grain_test": false
     columns:
       - name: id
@@ -240,7 +240,7 @@ models:
     description: "Fixture for an individual YAML column-check exemption."
     config:
       meta:
-        "checks.column_has_description": false
+        "checks.column_is_documented": false
         "checks.model_has_grain_test": false
     columns:
       - name: id
@@ -269,7 +269,8 @@ models:
     description: "Order records with normalized date and identifiers."
     config:
       meta:
-        "checks.column_has_description": true
+        "checks.column_is_documented":
+          require_data_type: false
         "checks.model_has_grain_test": true
         "checks.model_name_matches_pattern":
           pattern: "stg_orders"
