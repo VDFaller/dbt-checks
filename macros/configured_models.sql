@@ -7,6 +7,8 @@
                         'default for check argument ' ~ arg_name ~ ' must be a nonempty string'
                     ) }}
                 {% endif %}
+            {% elif default is boolean %}
+                {# Boolean arguments are valid for options such as required fields. #}
             {% elif default is sequence and default is not mapping %}
                 {% if default | length == 0 %}
                     {{ exceptions.raise_compiler_error(
@@ -23,7 +25,7 @@
             {% else %}
                 {{ exceptions.raise_compiler_error(
                     'unsupported default for check argument ' ~ arg_name
-                    ~ ': expected a nonempty string or list of nonempty strings'
+                    ~ ': expected a boolean, nonempty string, or list of nonempty strings'
                 ) }}
             {% endif %}
         {% endfor %}
@@ -41,6 +43,14 @@
                                 ''
                             ) <> ''
                             then json_extract_string({{ arg_name }}_json, '$')
+                    end as {{ arg_name }},
+                {% elif default is boolean %}
+                    case
+                        when json_type({{ arg_name }}_json) = 'BOOLEAN'
+                            then try_cast(
+                                json_extract_string({{ arg_name }}_json, '$')
+                                as boolean
+                            )
                     end as {{ arg_name }},
                 {% else %}
                     case
@@ -71,6 +81,9 @@
                                 ''
                             ) = ''
                             then '{{ arg_name }} must be a nonempty string'
+                    {% elif default is boolean %}
+                        when json_type({{ arg_name }}_json) <> 'BOOLEAN'
+                            then '{{ arg_name }} must be a boolean'
                     {% else %}
                         when json_type({{ arg_name }}_json) <> 'ARRAY'
                             or json_array_length({{ arg_name }}_json) = 0

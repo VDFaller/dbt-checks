@@ -40,6 +40,12 @@ FOCUSED_CASES = [
     CheckCase("column_has_description", "stg_sql_column_override", False),
     CheckCase("column_has_description", "stg_yaml_column_exemption", True),
     CheckCase("column_has_description", "fct_yaml_column_exemption", True),
+    CheckCase("column_is_documented", "fct_documented_columns", True),
+    CheckCase("column_is_documented", "fct_optional_column_type", True),
+    CheckCase("column_is_documented", "fct_missing_column_docs", False),
+    CheckCase("column_is_documented", "fct_missing_column_type", False),
+    CheckCase("model_has_contract", "dim_contract_enforced", True),
+    CheckCase("model_has_contract", "dim_missing_contract", False),
     CheckCase("model_has_grain_test", "customers", True),
     CheckCase("model_has_grain_test", "fct_composite_grain", True),
     CheckCase("model_has_grain_test", "dim_missing_grain_not_null", False),
@@ -63,6 +69,8 @@ EXPECTED_ALL_FAILURES = {
     "source_table_has_description": {"raw_orders"},
     "source_table_has_test": {"raw_orders"},
     "column_has_description": {"fct_missing_column_docs", "stg_sql_column_override"},
+    "column_is_documented": {"fct_missing_column_docs", "fct_missing_column_type"},
+    "model_has_contract": {"dim_missing_contract"},
     "model_has_grain_test": {"dim_missing_grain_not_null"},
     "model_name_matches_pattern": {"mart_without_docs"},
     "public_models_have_descriptions": {"mart_without_docs"},
@@ -83,7 +91,10 @@ def dbt(*args: str, project: Path = PROJECT_DIR, env: dict[str, str] | None = No
     if env is not None:
         effective_env.update(env)
     return command(
-        ["dbt", *args, "--project-dir", str(project), "--profiles-dir", str(PROFILES_DIR)],
+        [
+            "dbt", *args, "--no-manage-state",
+            "--project-dir", str(project), "--profiles-dir", str(PROFILES_DIR),
+        ],
         cwd=project,
         env=effective_env,
     )
@@ -145,10 +156,31 @@ def assert_full_suite() -> None:
 def invalid_settings_cases() -> None:
     """Exercise invalid argument handling in tiny throwaway dbt projects."""
     invalid_cases = [
-        ("wrong_type", '"checks.model_has_grain_test": "true"', "check config must be true, false, or an object"),
-        ("unknown_option", '"checks.model_has_grain_test": {"unknown": true}', "unknown check option"),
-        ("empty_argument", '"checks.model_has_grain_test": {"accepted_test_names": []}', "accepted_test_names must be a nonempty array"),
-        ("wrong_argument_type", '"checks.model_has_grain_test": {"accepted_test_names": "unique"}', "accepted_test_names must be a nonempty array"),
+        (
+            "wrong_type", "model_has_grain_test",
+            '"checks.model_has_grain_test": "true"',
+            "check config must be true, false, or an object",
+        ),
+        (
+            "unknown_option", "model_has_grain_test",
+            '"checks.model_has_grain_test": {"unknown": true}',
+            "unknown check option",
+        ),
+        (
+            "empty_argument", "model_has_grain_test",
+            '"checks.model_has_grain_test": {"accepted_test_names": []}',
+            "accepted_test_names must be a nonempty array",
+        ),
+        (
+            "wrong_argument_type", "model_has_grain_test",
+            '"checks.model_has_grain_test": {"accepted_test_names": "unique"}',
+            "accepted_test_names must be a nonempty array",
+        ),
+        (
+            "wrong_boolean_argument", "column_is_documented",
+            '"checks.column_is_documented": {"require_data_type": "false"}',
+            "require_data_type must be a boolean",
+        ),
     ]
     with tempfile.TemporaryDirectory(prefix="dbt-checks-invalid-") as temporary:
         root = Path(temporary)
@@ -171,7 +203,7 @@ def invalid_settings_cases() -> None:
         absent_check = dbt("check", "model_has_grain_test", "--select", "no_setting", project=absent, env=absent_env)
         if absent_check.returncode != 0:
             raise AssertionError(f"Absent setting should leave the check unconfigured:\n{absent_check.stdout}")
-        for case_name, setting, expected in invalid_cases:
+        for case_name, check_name, setting, expected in invalid_cases:
             project = root / case_name
             (project / "models").mkdir(parents=True)
             (project / "models" / "invalid_case.sql").write_text(
@@ -191,7 +223,10 @@ def invalid_settings_cases() -> None:
             deps = dbt("deps", project=project, env=local_env)
             if deps.returncode != 0:
                 raise AssertionError(f"dbt deps failed for {case_name}:\n{deps.stdout}")
-            check = dbt("check", "model_has_grain_test", "--select", "invalid_case", project=project, env=local_env)
+            check = dbt(
+                "check", check_name, "--select", "invalid_case",
+                project=project, env=local_env,
+            )
             if check.returncode != 1 or expected not in check.stdout:
                 raise AssertionError(f"{case_name}: expected {expected!r}, got {check.returncode}:\n{check.stdout}")
 
