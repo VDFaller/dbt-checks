@@ -12,14 +12,15 @@ models and sources:
 - every enabled source table has at least one data test;
 - every enabled model opting into the grain check has an accepted grain test
   with matching not-null tests;
-- columns have descriptions on models that opt in with
-  `"checks.column_has_description": true` under `meta`; and
+- every column on an opted-in model has a description and declared data type
+  with `column_is_documented` (data type can be optional per model);
+- opted-in models have an enforced contract with `model_has_contract`; and
 - opted-in model names fully match a configurable regex pattern.
 
 Put each check directly under `+meta` as a separate, quoted `checks.*` key.
 This lets dbt inherit or override one check without replacing the settings
 for another check. For example, enable the grain check for every model, and
-require column descriptions and a name pattern in marts:
+require column documentation and a name pattern in marts:
 
 ```yaml
 models:
@@ -32,7 +33,9 @@ models:
           - expect_compound_columns_to_be_unique
     marts:
       +meta:
-        "checks.column_has_description": true
+        "checks.column_is_documented":
+          require_data_type: false
+        "checks.model_has_contract": true
         "checks.model_name_matches_pattern":
           pattern: "(dim_|fct_).*"
 ```
@@ -45,7 +48,12 @@ whole value for that check. The second name above is dbt-utils' compound
 uniqueness test; the third is the equivalent dbt-expectations test. These are
 bare generic test names, not package-qualified YAML keys. A model passes when
 an accepted uniqueness test has matching built-in `not_null` tests for all of
-its grain columns. `checks.column_has_description` takes `true` or `false`.
+its grain columns. `column_is_documented` takes `true` or `false`; by default
+it requires both a description and a declared `data_type` for every column. Set
+`"checks.column_is_documented": {require_data_type: false}` on a model (or
+folder) to keep requiring descriptions while making declared types optional
+there. Set it to `true` to restore both requirements. `model_has_contract`
+takes `true` or `false` and checks the model's `contract.enforced` setting.
 Absent keys are off; invalid values cause the corresponding check to fail.
 To use different accepted tests in a subfolder, set
 `"checks.model_has_grain_test"` in that subfolder's `+meta`; it replaces the
@@ -89,7 +97,7 @@ key:
 | `models_have_tests` | `model_has_test` |
 | `source_tables_have_descriptions` | `source_table_has_description` |
 | `sources_have_tests` | `source_table_has_test` |
-| `columns_have_descriptions` | `column_has_description` |
+| `columns_have_descriptions` | `column_is_documented` |
 
 ## Overriding checks
 
@@ -103,7 +111,7 @@ checks:
       +enabled: false
 ```
 
-The same pattern applies to `column_has_description`,
+The same pattern applies to `column_is_documented`, `model_has_contract`,
 `model_has_grain_test`, `model_name_matches_pattern`,
 `model_has_description`, `model_has_properties_file`,
 `source_table_has_description`, and `source_table_has_test`. To disable every
@@ -124,7 +132,7 @@ disabled checks. A boolean-only check needs only its name:
 
 ```sql
 with configured_models as (
-    {{ dbt_checks.configured_models('column_has_description') }}
+    {{ dbt_checks.configured_models('model_has_contract') }}
 )
 ```
 
@@ -142,9 +150,10 @@ with configured_models as (
 ```
 
 The result has `unique_id`, `settings`, `config_error`, and a typed SQL column
-for each argument. A nonempty string default yields a string; a nonempty list
-of nonempty strings yields a string array. Defaults are used only when an
-argument is absent. Unsupported or empty defaults fail at compile time.
+for each argument. A nonempty string default yields a string, a boolean default
+yields a boolean, and a nonempty list of nonempty strings yields a string array.
+Defaults are used only when an argument is absent. Unsupported or empty
+defaults fail at compile time.
 Invalid configured argument types, empty values, and unknown option names set
 `config_error`; checks should report that error before evaluating their own
 rule. Invalid arguments have null typed columns; valid arguments can be used
@@ -183,7 +192,8 @@ invalid regex causes `dbt check` to fail with the database's regex error.
 ## Integration project
 
 `integration_tests/jaffle_shop` is a complete DuckDB project that exercises all
-eight package checks against Jaffle Shop models, sources, descriptions, and tests.
+nine package checks against Jaffle Shop models, sources, descriptions, contracts,
+and tests.
 It also includes `checks/public_models_have_descriptions.sql`, a project check
 using `dbt_checks.configured_models` with dbt's `info_schema('models')` macro. Its
 `dbt check` output intentionally includes violations; the suite runner verifies

@@ -81,6 +81,8 @@ models:
     config:
       meta:
         "checks.model_has_grain_test": false
+        "checks.column_is_documented":
+          require_data_type: false
     columns:
       - name: documented_column
         description: "Column that has documentation."
@@ -89,6 +91,77 @@ models:
       - not_null:
           arguments:
             column_name: documented_column
+  - name: fct_missing_column_type
+    description: "Fixture for the default declared data type requirement."
+    config:
+      meta:
+        "checks.model_has_grain_test": false
+        "checks.column_is_documented": true
+    columns:
+      - name: id
+        description: "Identifier without a declared type."
+    data_tests:
+      - not_null:
+          arguments:
+            column_name: id
+  - name: fct_optional_column_type
+    description: "Fixture where a column type is optional but documentation is required."
+    config:
+      meta:
+        "checks.model_has_grain_test": false
+        "checks.column_is_documented":
+          require_data_type: false
+    columns:
+      - name: id
+        description: "Identifier without a declared type."
+    data_tests:
+      - not_null:
+          arguments:
+            column_name: id
+  - name: fct_documented_columns
+    description: "Fixture with complete column documentation."
+    config:
+      meta:
+        "checks.model_has_grain_test": false
+        "checks.column_is_documented": true
+    columns:
+      - name: id
+        description: "Fixture row identifier."
+        data_type: integer
+    data_tests:
+      - not_null:
+          arguments:
+            column_name: id
+  - name: dim_contract_enforced
+    description: "Fixture with an enforced model contract."
+    config:
+      contract:
+        enforced: true
+      meta:
+        "checks.model_has_grain_test": false
+        "checks.model_has_contract": true
+    columns:
+      - name: id
+        description: "Fixture row identifier."
+        data_type: integer
+    data_tests:
+      - not_null:
+          arguments:
+            column_name: id
+  - name: dim_missing_contract
+    description: "Fixture without an enforced model contract."
+    config:
+      meta:
+        "checks.model_has_grain_test": false
+        "checks.model_has_contract": true
+    columns:
+      - name: id
+        description: "Fixture row identifier."
+        data_type: integer
+    data_tests:
+      - not_null:
+          arguments:
+            column_name: id
   - name: dim_missing_grain_not_null
     description: "Fixture missing a not-null test on one composite grain column."
     config:
@@ -155,7 +228,7 @@ models:
     description: "Fixture for YAML false column-check override."
     config:
       meta:
-        "checks.column_has_description": false
+        "checks.column_is_documented": false
         "checks.model_has_grain_test": false
     columns:
       - name: id
@@ -167,7 +240,7 @@ models:
     description: "Fixture for an individual YAML column-check exemption."
     config:
       meta:
-        "checks.column_has_description": false
+        "checks.column_is_documented": false
         "checks.model_has_grain_test": false
     columns:
       - name: id
@@ -196,7 +269,8 @@ models:
     description: "Order records with normalized date and identifiers."
     config:
       meta:
-        "checks.column_has_description": true
+        "checks.column_is_documented":
+          require_data_type: false
         "checks.model_has_grain_test": true
         "checks.model_name_matches_pattern":
           pattern: "stg_orders"

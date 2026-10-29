@@ -25,11 +25,11 @@ models:
     staging:
       +materialized: view
       +meta:
-        "checks.column_has_description": false
         "checks.model_name_matches_pattern":
           pattern: "(base_|stg_).*"
     marts:
       +meta:
-        "checks.column_has_description": true
+        "checks.column_is_documented":
+          require_data_type: false
         "checks.model_name_matches_pattern":
           pattern: "(dim_|fct_).*"
